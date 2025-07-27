@@ -10,8 +10,10 @@ OBJCOPY := objcopy
 
 # 编译选项
 NASMFLAGS := -f bin
-CFLAGS := -target i386-pc-none-elf -nostdlib -ffreestanding -Wall -Wextra
-LDFLAGS := -nostdlib -static -m elf_i386
+CFLAGS := -target i386-pc-none-elf -nostdlib -ffreestanding \
+          -Wall -Wextra -Werror -pedantic \
+          -Wno-unused-parameter -Wno-unused-function
+LDFLAGS := -nostdlib -static -m elf_i386 -Wl,--fatal-warnings
 
 # 目标文件
 BOOTLOADER := boot/boot.bin
@@ -26,20 +28,19 @@ $(BOOTLOADER): boot/boot.asm
 	$(NASM) $(NASMFLAGS) $< -o $@
 
 # 构建内核
-kernel/main.o: kernel/main.c kernel/gdt_idt.h kernel/scheduler.h
+kernel/main.o: kernel/main.c kernel/gdt_idt.h kernel/scheduler.h kernel/mm/paging.h
 	$(CLANG) $(CFLAGS) -c $< -o $@
 
-kernel/gdt_idt.o: kernel/gdt_idt.c kernel/gdt_idt.h
+kernel/gdt_idt.o: kernel/gdt_idt.c kernel/gdt_idt.h kernel/mm/paging.h
 	$(CLANG) $(CFLAGS) -c $< -o $@
 
 kernel/gdt_idt_asm.o: kernel/gdt_idt.asm
 	$(NASM) -f elf32 $< -o $@
 
-kernel/scheduler.o: kernel/scheduler.c kernel/scheduler.h
+kernel/scheduler.o: kernel/scheduler.c kernel/scheduler.h kernel/mm/paging.h
 	$(CLANG) $(CFLAGS) -c $< -o $@
 
-
-kernel/mm/paging.o: kernel/mm/paging.c kernel/mm/paging.h
+kernel/mm/paging.o: kernel/mm/paging.c kernel/mm/paging.h kernel/gdt_idt.h
 	$(CLANG) $(CFLAGS) -c $< -o $@
 
 $(KERNEL): kernel/main.o kernel/gdt_idt.o kernel/gdt_idt_asm.o kernel/scheduler.o kernel/mm/paging.o
@@ -54,6 +55,6 @@ $(OS_IMAGE): $(BOOTLOADER) $(KERNEL)
 
 # 清理
 clean:
-	rm -f $(BOOTLOADER) $(KERNEL) $(OS_IMAGE) kernel/*.o
+	rm -f $(BOOTLOADER) $(KERNEL) $(OS_IMAGE) kernel/*.o kernel/mm/*.o
 
 .PHONY: all clean

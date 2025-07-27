@@ -12,32 +12,50 @@
 
 # 构建
 
+# 构建与测试
+
+## 环境要求
+- NASM 2.15+
+- Clang 12.0+
+- GNU ld 2.36+
+- QEMU 6.0+ (用于测试)
+- Python 3.6+ (用于环境配置)
+
+## 构建步骤
 ```bash
-# 安装依赖
+# 1. 安装依赖工具
 python3 Build.py
 
-# 构建项目（推荐使用make）
+# 2. 构建系统 (使用make)
 make
+
+# 3. 运行测试 (可选)
+make test
 ```
 
-## 测试
+## 测试方法
 ### Linux/QEMU
 ```bash
-./test/run_test.sh
+# 使用QEMU运行
+qemu-system-i386 -drive file=bueos.img,format=raw
 ```
 
 ### Windows/Hyper-V
 ```cmd
-test\run_test.bat
+:: 使用Hyper-V运行
+.\test\run_test.bat
 ```
 
 ### Android/Termux
 ```bash
+# 安装QEMU
 pkg install qemu-system-x86_64
+
+# 运行测试
 ./test/run_test.sh
 ```
 
-# 当前进度
+# 开发进度
 
 - [x] **`Bootloader` - 完成基本的引导程序，可以引导内核**
 

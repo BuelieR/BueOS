@@ -13,7 +13,8 @@ REQUIRED_TOOLS = {
     'nasm': 'NASM assembler',
     'clang': 'Clang compiler',
     'ld': 'GNU linker',
-    'objcopy': 'GNU objcopy'
+    'objcopy': 'GNU objcopy',
+    'qemu-system-i386': 'QEMU i386 emulator'
 }
 
 def check_tools():
@@ -42,6 +43,8 @@ def install_tools(missing_tools):
             if system == 'linux':
                 if os.path.exists('/data/data/com.termux/files/usr/bin/pkg'):
                     # Termux环境
+                    if tool == 'qemu-system-i386':
+                        tool = 'qemu-system-x86_64'
                     subprocess.run(['pkg', 'install', '-y', tool], check=True)
                 else:
                     # 普通Linux
@@ -52,7 +55,10 @@ def install_tools(missing_tools):
                     subprocess.run(['sudo', 'apt-get', 'update'], 
                                  stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                     # 安装工具
-                    subprocess.run(['sudo', 'apt-get', 'install', '-y', tool], check=True)
+                    if tool == 'qemu-system-i386':
+                        subprocess.run(['sudo', 'apt-get', 'install', '-y', 'qemu-system'], check=True)
+                    else:
+                        subprocess.run(['sudo', 'apt-get', 'install', '-y', tool], check=True)
             elif system == 'windows':
                 print(f"请在Windows上手动安装 {tool}")
                 success = False
@@ -71,10 +77,14 @@ def install_tools(missing_tools):
                 try:
                     subprocess.run(['sudo', 'apt-get', 'install', '-y', 'aptitude'], 
                                  stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-                    subprocess.run(['sudo', 'aptitude', 'install', '-y', tool], check=True)
+                    if tool == 'qemu-system-i386':
+                        subprocess.run(['sudo', 'aptitude', 'install', '-y', 'qemu-system'], check=True)
+                    else:
+                        subprocess.run(['sudo', 'aptitude', 'install', '-y', tool], check=True)
                     print(f"✓ 使用aptitude成功安装: {tool}")
                     continue
-                except:
+                except Exception as e:
+                    print(f"aptitude安装失败: {str(e)}")
                     pass
                 
             print(f"请手动运行安装命令: sudo apt-get install {tool}")
