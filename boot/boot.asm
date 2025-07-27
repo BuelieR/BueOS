@@ -80,6 +80,42 @@ start:
     call print_string
     jmp 0x08:0x100000
     
+; 错误处理函数
+disk_error:
+    mov si, msg_disk_error
+    call print_string
+    jmp $
+
+memory_error:
+    mov si, msg_memory_error
+    call print_string
+    jmp $
+
+kernel_error:
+    mov si, msg_kernel_error
+    call print_string
+    jmp $
+
+; 打印字符串函数
+print_string:
+    pusha
+    mov ah, 0x0E    ; BIOS teletype output
+.loop:
+    lodsb           ; 加载下一个字符
+    test al, al     ; 检查是否为字符串结尾
+    jz .done
+    int 0x10        ; 打印字符
+    jmp .loop
+.done:
+    popa
+    ret
+
+; 等待按键函数
+wait_key:
+    mov ah, 0x00
+    int 0x16        ; BIOS 键盘中断
+    ret
+
 ; GDT定义
 gdt_start:
     ; 空描述符
@@ -98,6 +134,23 @@ gdt_start:
     dw 0xFFFF
     dw 0x0
     db 0x0
+    db 10010010b   ; 访问权限
+    db 11001111b   ; 段限长高4位 + 标志
+    db 0x0         ; 段基址高8位
+
+gdt_end:
+
+gdt_descriptor:
+    dw gdt_end - gdt_start - 1  ; GDT大小
+    dd gdt_start                ; GDT基地址
+
+; 字符串常量
+msg_loading db 'Loading BueOS...', 13, 10, 0
+msg_disk_error db 'Disk read error!', 13, 10, 0
+msg_memory_error db 'Memory check failed!', 13, 10, 0
+msg_kernel_error db 'Invalid kernel image!', 13, 10, 0
+msg_kernel_loaded db 'Kernel loaded successfully!', 13, 10, 0
+msg_jumping db 'Jumping to kernel...', 13, 10, 0
     db 10010010b
     db 11001111b
     db 0x0

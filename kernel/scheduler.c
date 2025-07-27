@@ -7,6 +7,11 @@
 #include <stddef.h>
 #include <stdint.h>
 
+// 简单的内存管理（临时实现）
+#define HEAP_START 0x200000
+#define HEAP_SIZE  0x100000
+static uint32_t heap_ptr = HEAP_START;
+
 // 当前运行进程
 static pcb_t* current_task = NULL;
 
@@ -15,6 +20,17 @@ static pcb_t* ready_queue = NULL;
 
 // 进程ID计数器
 static uint32_t next_pid = 1;
+
+// 简单的内存分配函数
+static void* kmalloc(uint32_t size) {
+    if (heap_ptr + size > HEAP_START + HEAP_SIZE) {
+        return NULL;    // 内存不足
+    }
+    
+    void* ptr = (void*)heap_ptr;
+    heap_ptr += size;
+    return ptr;
+}
 
 // 初始化调度器
 void init_scheduler(void) {

@@ -117,7 +117,24 @@ void init_idt() {
 
     // 重新映射PIC
     // Remap PIC
-    outb(PIC1_CMD, 0x11);
+    outb(PIC1_CMD, 0x11);  // 初始化主PIC
+    outb(PIC2_CMD, 0x11);  // 初始化从PIC
+    
+    // 设置PIC中断向量偏移
+    outb(PIC1_DATA, 0x20); // 主PIC起始中断号: 0x20 (32)
+    outb(PIC2_DATA, 0x28); // 从PIC起始中断号: 0x28 (40)
+    
+    // 设置级联
+    outb(PIC1_DATA, 0x04); // 告诉主PIC从PIC在IRQ2
+    outb(PIC2_DATA, 0x02); // 告诉从PIC其级联位置
+    
+    // 设置8086模式
+    outb(PIC1_DATA, 0x01);
+    outb(PIC2_DATA, 0x01);
+    
+    // 屏蔽所有中断（后面会按需启用）
+    outb(PIC1_DATA, 0xFF);
+    outb(PIC2_DATA, 0xFF);
     outb(PIC2_CMD, 0x11);
     outb(PIC1_DATA, 0x20);
     outb(PIC2_DATA, 0x28);
