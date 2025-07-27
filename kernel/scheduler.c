@@ -4,13 +4,7 @@
  */
 
 #include "scheduler.h"
-#include <stddef.h>
-#include <stdint.h>
-
-// 简单的内存管理（临时实现）
-#define HEAP_START 0x200000
-#define HEAP_SIZE  0x100000
-static uint32_t heap_ptr = HEAP_START;
+#include "mm/paging.h"
 
 // 当前运行进程
 static pcb_t* current_task = NULL;
@@ -41,8 +35,11 @@ void init_scheduler(void) {
 
 // 创建新进程
 pcb_t* create_process(void (*entry)(void), uint32_t priority) {
-    // 分配PCB内存 (简化实现，实际需要内存管理)
-    pcb_t* new_task = (pcb_t*)0x100000; // 临时地址
+    // 使用页对齐的内存分配
+    pcb_t* new_task = (pcb_t*)kmalloc_page(sizeof(pcb_t), 1);
+    if (!new_task) {
+        return NULL;  // 内存分配失败
+    }
     
     // 初始化PCB
     new_task->pid = next_pid++;
