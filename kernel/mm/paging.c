@@ -102,6 +102,61 @@ void init_paging(void) {
     switch_page_directory(dir);
 }
 
+// 页错误处理函数
+void page_fault_handler(uint32_t int_no, uint32_t err_code) {
+    // 获取CR2寄存器中的错误地址
+    uint32_t faulting_address;
+    asm volatile("mov %%cr2, %0" : "=r" (faulting_address));
+    
+    // 处理页错误...
+    (void)int_no;  // 未使用参数
+    (void)err_code; // 未使用参数
+}
+
+// 获取页表项
+page_table_entry_t* get_page(uint32_t address, int make, page_directory_t* dir) {
+    // 将地址转换为页索引
+    address /= 0x1000;
+    uint32_t table_idx = address / 1024;
+    
+    // 确保页目录有效
+    if (dir->tables[table_idx].present == 0) {
+        if (make) {
+            uint32_t tmp = (uint32_t)kmalloc_page(sizeof(page_table_entry_t)*1024, 1);
+            // 初始化新页表
+            page_table_entry_t* new_table = (page_table_entry_t*)tmp;
+            for (int i = 0; i < 1024; i++) {
+                new_table[i].present = 0;
+                new_table[i].rw = 1;
+                new_table[i].user = 0;
+                new_table[i].frame = 0;
+            }
+            dir->tables[table_idx].frame = tmp / 0x1000;
+            dir->tables[table_idx].present = 1;
+            dir->tables[table_idx].rw = 1;
+            dir->tables[table_idx].user = 0;
+        } else {
+            return 0;
+        }
+    }
+    
+    // 返回页表项
+    return &((page_table_entry_t*)(dir->tables[table_idx].frame * 0x1000))[address % 1024];
+}
+
+// 页分配函数
+void* kmalloc_page(size_t size, int align) {
+    // 简单实现 - 实际项目中需要更复杂的内存管理
+    static uint32_t kmalloc_ptr = 0x100000; // 从1MB开始分配
+    if (align == 1 && (kmalloc_ptr & 0xFFFFF000)) {
+        kmalloc_ptr &= 0xFFFFF000;
+        kmalloc_ptr += 0x1000;
+    }
+    uint32_t ret = kmalloc_ptr;
+    kmalloc_ptr += size;
+    return (void*)ret;
+}
+
 // 切换页目录
 void switch_page_directory(page_directory_t* dir) {
     current_directory = dir;

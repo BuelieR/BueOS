@@ -43,7 +43,7 @@ typedef struct {
 void init_paging(void);
 void switch_page_directory(page_directory_t* new_directory);
 page_table_entry_t* get_page(uint32_t address, int make, page_directory_t* dir);
-void page_fault_handler(void);
+void page_fault_handler(uint32_t int_no, uint32_t err_code);
 void* kmalloc_page(size_t size, int align);
 void kfree_page(void* ptr);
 

@@ -12,8 +12,9 @@ OBJCOPY := objcopy
 NASMFLAGS := -f bin
 CFLAGS := -target i386-pc-none-elf -nostdlib -ffreestanding \
           -Wall -Wextra -Werror -pedantic \
-          -Wno-unused-parameter -Wno-unused-function
-LDFLAGS := -nostdlib -static -m elf_i386 -Wl,--fatal-warnings
+          -Wno-unused-parameter -Wno-unused-function \
+          -Wno-language-extension-token
+LDFLAGS := -nostdlib -static -m elf_i386
 
 # 目标文件
 BOOTLOADER := boot/boot.bin

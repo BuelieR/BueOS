@@ -13,6 +13,15 @@ typedef unsigned char uint8_t;
 typedef unsigned short uint16_t;
 typedef unsigned int uint32_t;
 
+// 寄存器保存结构
+// Register Save Structure
+struct regs {
+    uint32_t gs, fs, es, ds;
+    uint32_t edi, esi, ebp, esp, ebx, edx, ecx, eax;
+    uint32_t int_no, err_code;
+    uint32_t eip, cs, eflags, useresp, ss;
+} __attribute__((packed));
+
 // GDT描述符结构
 // GDT Descriptor Structure
 struct gdt_entry {
@@ -70,14 +79,5 @@ void irq_install_handler(int irq, void (*handler)(struct regs *r)); // 安装IRQ
 void irq_uninstall_handler(int irq); // 卸载IRQ处理程序
 void enable_interrupts();   // 启用中断
 void disable_interrupts();  // 禁用中断
-
-// 寄存器保存结构
-// Register Save Structure
-struct regs {
-    uint32_t gs, fs, es, ds;
-    uint32_t edi, esi, ebp, esp, ebx, edx, ecx, eax;
-    uint32_t int_no, err_code;
-    uint32_t eip, cs, eflags, useresp, ss;
-} __attribute__((packed));
 
 #endif // KERNEL_GDT_IDT_H
