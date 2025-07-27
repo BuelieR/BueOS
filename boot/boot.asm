@@ -48,12 +48,6 @@ start:
     mov si, msg_kernel_loaded
     call print_string
     
-    ; 检查内核魔数 (前4字节)
-    mov ax, 0x1000
-    mov es, ax
-    cmp dword [es:0], 0x1BADB002 ; 内核魔数
-    jne kernel_error
-    
     ; 设置GDT
     cli
     lgdt [gdt_descriptor]
@@ -63,10 +57,18 @@ start:
     or eax, 0x1
     mov cr0, eax
     
+    ; 调试输出 - 保护模式已启用
+    mov si, msg_protected
+    call print_string
+    
     ; 远跳转刷新CS
     jmp 0x08:.protected_mode
     
 .protected_mode:
+    ; 调试输出 - 进入保护模式
+    mov si, msg_in_protected
+    call print_string
+    
     ; 设置数据段寄存器
     mov ax, 0x10
     mov ds, ax
@@ -75,10 +77,19 @@ start:
     mov gs, ax
     mov ss, ax
     
-    ; 跳转到内核 (0x100000)
+    ; 调试输出 - 段寄存器已设置
+    mov si, msg_segments_set
+    call print_string
+    
+    ; 验证内核魔数 (在保护模式下)
+    mov esi, 0x100000
+    cmp dword [esi], 0x1BADB002 ; 内核魔数
+    jne kernel_error
+    
+    ; 跳转到内核入口点
     mov si, msg_jumping
     call print_string
-    jmp 0x08:0x100000
+    jmp 0x08:0x100004 ; 跳过4字节魔数
     
 ; 错误处理函数
 disk_error:
@@ -123,6 +134,9 @@ msg_memory_error db "1MB memory not available!", 0x0D, 0x0A, 0
 msg_kernel_loaded db "Kernel loaded, verifying...", 0x0D, 0x0A, 0
 msg_kernel_error db "Invalid kernel image!", 0x0D, 0x0A, 0
 msg_jumping db "Jumping to kernel...", 0x0D, 0x0A, 0
+msg_protected db "Enabling protected mode...", 0x0D, 0x0A, 0
+msg_in_protected db "Now in protected mode!", 0x0D, 0x0A, 0
+msg_segments_set db "Segment registers configured!", 0x0D, 0x0A, 0
 
 ; GDT定义
 gdt_start:
