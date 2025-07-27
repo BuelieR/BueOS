@@ -3,8 +3,16 @@
  * 实现基本的进程调度功能
  */
 
+// BueOS Scheduler Implementation
 #include "scheduler.h"
 #include "mm/paging.h"
+
+#define NULL ((void*)0)
+
+// 内存分配相关变量（裸机环境，避免标准库）
+#define HEAP_START 0x200000
+#define HEAP_SIZE  0x100000
+static unsigned int heap_ptr = HEAP_START;
 
 // 当前运行进程
 static pcb_t* current_task = NULL;
@@ -13,14 +21,13 @@ static pcb_t* current_task = NULL;
 static pcb_t* ready_queue = NULL;
 
 // 进程ID计数器
-static uint32_t next_pid = 1;
+static unsigned int next_pid = 1;
 
-// 简单的内存分配函数
-static void* kmalloc(uint32_t size) {
+// 简单的内存分配函数（备用，优先用kmalloc_page）
+static void* kmalloc(unsigned int size) {
     if (heap_ptr + size > HEAP_START + HEAP_SIZE) {
         return NULL;    // 内存不足
     }
-    
     void* ptr = (void*)heap_ptr;
     heap_ptr += size;
     return ptr;

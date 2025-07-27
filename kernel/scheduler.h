@@ -6,7 +6,9 @@
 #ifndef _SCHEDULER_H
 #define _SCHEDULER_H
 
-#include <stdint.h>
+
+// 基本类型定义（避免标准库依赖）
+typedef unsigned int uint32_t;
 
 // 进程状态
 // Process states

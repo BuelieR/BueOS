@@ -38,7 +38,11 @@ kernel/gdt_idt_asm.o: kernel/gdt_idt.asm
 kernel/scheduler.o: kernel/scheduler.c kernel/scheduler.h
 	$(CLANG) $(CFLAGS) -c $< -o $@
 
-$(KERNEL): kernel/main.o kernel/gdt_idt.o kernel/gdt_idt_asm.o kernel/scheduler.o
+
+kernel/mm/paging.o: kernel/mm/paging.c kernel/mm/paging.h
+	$(CLANG) $(CFLAGS) -c $< -o $@
+
+$(KERNEL): kernel/main.o kernel/gdt_idt.o kernel/gdt_idt_asm.o kernel/scheduler.o kernel/mm/paging.o
 	$(LD) $(LDFLAGS) -T kernel/linker.ld $^ -o $@
 	$(OBJCOPY) -O binary $@ $@
 
